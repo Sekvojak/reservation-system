@@ -2,6 +2,7 @@ package com.dominik.reservation.controller;
 
 import com.dominik.reservation.dto.ReservationCreateRequest;
 import com.dominik.reservation.dto.ReservationResponse;
+import com.dominik.reservation.dto.ReservationUpdateRequest;
 import com.dominik.reservation.service.ReservationService;
 import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
@@ -40,6 +41,13 @@ public class ReservationController {
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         reservationService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @PutMapping("/{id}")
+    public ReservationResponse update(@PathVariable Long id,
+                                      @RequestBody ReservationUpdateRequest request) {
+        return reservationService.update(id, request);
+
     }
 
 }

@@ -2,6 +2,7 @@ package com.dominik.reservation.service;
 
 import com.dominik.reservation.dto.ReservationCreateRequest;
 import com.dominik.reservation.dto.ReservationResponse;
+import com.dominik.reservation.dto.ReservationUpdateRequest;
 import com.dominik.reservation.entity.Facility;
 import com.dominik.reservation.entity.Reservation;
 import com.dominik.reservation.entity.User;
@@ -10,6 +11,7 @@ import com.dominik.reservation.exception.NotFoundException;
 import com.dominik.reservation.repository.FacilityRepository;
 import com.dominik.reservation.repository.ReservationRepository;
 import com.dominik.reservation.repository.UserRepository;
+import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -96,5 +98,44 @@ public class ReservationService {
             throw new NotFoundException("Reservation not found");
         }
         reservationRepository.deleteById(id);
+    }
+
+    @Transactional
+    public ReservationResponse update(Long id, ReservationUpdateRequest request) {
+
+        LocalDateTime newStartTime = request.startTime();
+        LocalDateTime newEndTime = request.endTime();
+
+        if (newStartTime == null || newEndTime == null) {
+            throw new IllegalArgumentException("start time and end time must be provided");
+        }
+
+        if (!newEndTime.isAfter(newStartTime)) {
+            throw new IllegalArgumentException("endTime must be after startTime");
+        }
+
+
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Reservation not found"));
+
+        Long facilityId = reservation.getFacility().getId();
+
+        boolean overlap = reservationRepository.existsOverlappingReservationExcludingId(
+                facilityId,
+                reservation.getId(),
+                newStartTime,
+                newEndTime
+        );
+
+        if (overlap) {
+            throw new ConflictException("Reservation overlaps with existing reservation");
+        }
+
+
+        reservation.setStartTime(newStartTime);
+        reservation.setEndTime(newEndTime);
+
+        Reservation saved =  reservationRepository.save(reservation);
+        return toResponse(saved);
     }
 }
