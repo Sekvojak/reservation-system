@@ -11,7 +11,6 @@ import com.dominik.reservation.exception.NotFoundException;
 import com.dominik.reservation.repository.FacilityRepository;
 import com.dominik.reservation.repository.ReservationRepository;
 import com.dominik.reservation.repository.UserRepository;
-import org.springframework.cglib.core.Local;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -82,8 +81,21 @@ public class ReservationService {
         );
     }
 
-    public Page<ReservationResponse> list(Pageable pageable) {
-        return reservationRepository.findAll(pageable).map(this::toResponse);
+    public Page<ReservationResponse> list(Long facilityId, Long userId, Pageable pageable) {
+        if (facilityId == null && userId == null) {
+            return reservationRepository.findAll(pageable).map(this::toResponse);
+        }
+        if (facilityId != null && userId == null) {
+            return reservationRepository.findByFacilityIdAndCanceledFalse(facilityId, pageable).map(this::toResponse);
+        }
+        if (facilityId == null) {
+            return reservationRepository.findByUserIdAndCanceledFalse(userId, pageable).map(this::toResponse);
+        }
+
+        return reservationRepository.findByFacilityIdAndUserIdAndCanceledFalse(facilityId, userId, pageable).map(this::toResponse);
+
+
+
     }
 
     public ReservationResponse getById(Long id) {
@@ -131,11 +143,24 @@ public class ReservationService {
             throw new ConflictException("Reservation overlaps with existing reservation");
         }
 
-
         reservation.setStartTime(newStartTime);
         reservation.setEndTime(newEndTime);
 
         Reservation saved =  reservationRepository.save(reservation);
+        return toResponse(saved);
+    }
+
+    @Transactional
+    public ReservationResponse cancel(Long id) {
+        Reservation reservation = reservationRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Reservation not found: " + id));
+
+        if (reservation.isCanceled()) {
+            throw new ConflictException("Reservation is already canceled");
+        }
+
+        reservation.setCanceled(true);
+        Reservation saved = reservationRepository.save(reservation);
         return toResponse(saved);
     }
 }

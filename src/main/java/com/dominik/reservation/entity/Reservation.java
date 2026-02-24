@@ -30,4 +30,7 @@ public class Reservation {
     @Column(name = "end_time", nullable = false)
     private LocalDateTime endTime;
 
+    @Column(name = "canceled", nullable = false)
+    private boolean canceled = false;
+
 }

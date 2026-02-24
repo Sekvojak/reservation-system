@@ -1,11 +1,14 @@
 package com.dominik.reservation.repository;
 
 import com.dominik.reservation.entity.Reservation;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -14,8 +17,9 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
         from Reservation r
         where r.facility.id = :facilityId
             and :startTime < r.endTime
-            and :endTime > r.startTime\s
-   \s""")
+            and :endTime > r.startTime
+            and r.canceled = false
+    """)
     boolean existsOverlappingReservation(
             @Param("facilityId") Long facilityId,
             @Param("startTime") LocalDateTime startTime,
@@ -29,6 +33,7 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             and r.id <> :reservationId
             and :startTime < r.endTime
             and :endTime > r.startTime
+            and r.canceled = false
     """)
     boolean existsOverlappingReservationExcludingId(
             @Param("facilityId") Long facilityId,
@@ -37,4 +42,11 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
             @Param("endTime") LocalDateTime endTime
     );
 
+    Page<Reservation> findByCanceledFalse(Pageable pageable);
+
+    Page<Reservation> findByFacilityIdAndCanceledFalse(Long facilityId, Pageable pageable);
+
+    Page<Reservation> findByUserIdAndCanceledFalse(Long userId, Pageable pageable);
+
+    Page<Reservation> findByFacilityIdAndUserIdAndCanceledFalse(Long facilityId, Long userId, Pageable pageable);
 }

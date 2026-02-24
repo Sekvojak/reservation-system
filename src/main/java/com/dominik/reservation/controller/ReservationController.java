@@ -28,8 +28,11 @@ public class ReservationController {
     }
 
     @GetMapping
-    public Page<ReservationResponse> list(Pageable pageable) {
-        return reservationService.list(pageable);
+    public Page<ReservationResponse> list(
+            @RequestParam(required = false) Long facilityId,
+            @RequestParam(required = false) Long userId,
+            Pageable pageable) {
+        return reservationService.list(facilityId, userId, pageable);
     }
 
     @GetMapping("/{id}")
@@ -48,6 +51,11 @@ public class ReservationController {
                                       @RequestBody ReservationUpdateRequest request) {
         return reservationService.update(id, request);
 
+    }
+
+    @PatchMapping("/{id}/cancel")
+    public ReservationResponse cancel(@PathVariable Long id) {
+        return reservationService.cancel(id);
     }
 
 }
