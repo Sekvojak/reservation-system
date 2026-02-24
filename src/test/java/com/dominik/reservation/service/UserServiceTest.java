@@ -8,6 +8,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.*;
 
 public class UserServiceTest {
@@ -50,6 +51,16 @@ public class UserServiceTest {
         userService.delete(1L);
 
         verify(userRepository).deleteById(1L);
+    }
+
+    @Test
+    void delete_shouldIncludeUserIdInNotFoundMessage() {
+        when(userRepository.existsById(33L)).thenReturn(false);
+
+        NotFoundException ex = assertThrows(NotFoundException.class, () -> userService.delete(33L));
+
+        assertTrue(ex.getMessage().contains("33"));
+        verify(userRepository, never()).deleteById(anyLong());
     }
 
 }
