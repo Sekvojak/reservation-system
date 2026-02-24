@@ -8,7 +8,6 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
 
@@ -49,4 +48,6 @@ public interface ReservationRepository extends JpaRepository<Reservation, Long> 
     Page<Reservation> findByUserIdAndCanceledFalse(Long userId, Pageable pageable);
 
     Page<Reservation> findByFacilityIdAndUserIdAndCanceledFalse(Long facilityId, Long userId, Pageable pageable);
+
+    long countByUserIdAndCanceledFalse(Long userId);
 }

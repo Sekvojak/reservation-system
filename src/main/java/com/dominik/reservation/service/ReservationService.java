@@ -83,7 +83,7 @@ public class ReservationService {
 
     public Page<ReservationResponse> list(Long facilityId, Long userId, Pageable pageable) {
         if (facilityId == null && userId == null) {
-            return reservationRepository.findAll(pageable).map(this::toResponse);
+            return reservationRepository.findByCanceledFalse(pageable).map(this::toResponse);
         }
         if (facilityId != null && userId == null) {
             return reservationRepository.findByFacilityIdAndCanceledFalse(facilityId, pageable).map(this::toResponse);
