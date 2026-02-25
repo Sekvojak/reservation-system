@@ -37,7 +37,6 @@ public class UserService {
         User user = new User();
         user.setUsername(username);
         user.setEmail(email);
-        user.setCreatedAt(LocalDateTime.now());
 
         User saved = userRepository.save(user);
         return toResponse(saved);

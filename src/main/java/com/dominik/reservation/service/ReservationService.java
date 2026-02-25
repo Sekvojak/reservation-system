@@ -6,6 +6,7 @@ import com.dominik.reservation.dto.ReservationUpdateRequest;
 import com.dominik.reservation.entity.Facility;
 import com.dominik.reservation.entity.Reservation;
 import com.dominik.reservation.entity.User;
+import com.dominik.reservation.exception.BadRequestException;
 import com.dominik.reservation.exception.ConflictException;
 import com.dominik.reservation.exception.NotFoundException;
 import com.dominik.reservation.repository.FacilityRepository;
@@ -13,6 +14,8 @@ import com.dominik.reservation.repository.ReservationRepository;
 import com.dominik.reservation.repository.UserRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -39,16 +42,15 @@ public class ReservationService {
         LocalDateTime start = request.startTime();
         LocalDateTime end = request.endTime();
 
-        if (start == null || end == null) {
-            throw new IllegalArgumentException("start time and end time must be provided");
-        }
-
         if (!end.isAfter(start)) {
             throw new IllegalArgumentException("endTime must be after startTime");
         }
 
-        User user = userRepository.findById(request.userId())
-                .orElseThrow(() -> new NotFoundException("User not found: " + request.userId()));
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        String email = auth.getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found by email: " + email));
 
         Facility facility = facilityRepository.findById(request.facilityId())
                 .orElseThrow(() -> new NotFoundException("Facility not found: " + request.facilityId()));
@@ -118,12 +120,8 @@ public class ReservationService {
         LocalDateTime newStartTime = request.startTime();
         LocalDateTime newEndTime = request.endTime();
 
-        if (newStartTime == null || newEndTime == null) {
-            throw new IllegalArgumentException("start time and end time must be provided");
-        }
-
         if (!newEndTime.isAfter(newStartTime)) {
-            throw new IllegalArgumentException("endTime must be after startTime");
+            throw new BadRequestException("endTime must be after startTime");
         }
 
 
@@ -163,4 +161,15 @@ public class ReservationService {
         Reservation saved = reservationRepository.save(reservation);
         return toResponse(saved);
     }
+
+    public Page<ReservationResponse> listMine(Pageable pageable) {
+        String email = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new NotFoundException("User not found by email: " + email));
+
+        return reservationRepository.findByUserIdAndCanceledFalse(user.getId(), pageable)
+                .map(this::toResponse);
+    }
+
 }

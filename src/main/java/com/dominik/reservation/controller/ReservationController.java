@@ -23,7 +23,7 @@ public class ReservationController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public ReservationResponse create(@RequestBody ReservationCreateRequest request) {
+    public ReservationResponse create(@Valid @RequestBody ReservationCreateRequest request) {
         return reservationService.createReservation(request);
     }
 
@@ -40,6 +40,11 @@ public class ReservationController {
         return reservationService.getById(id);
     }
 
+    @GetMapping("/mine")
+    public Page<ReservationResponse> listMine(Pageable pageable) {
+        return reservationService.listMine(pageable);
+    }
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         reservationService.delete(id);
@@ -48,7 +53,7 @@ public class ReservationController {
 
     @PutMapping("/{id}")
     public ReservationResponse update(@PathVariable Long id,
-                                      @RequestBody ReservationUpdateRequest request) {
+                                      @Valid @RequestBody ReservationUpdateRequest request) {
         return reservationService.update(id, request);
 
     }

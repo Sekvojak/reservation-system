@@ -29,7 +29,6 @@ public class FacilityService {
         Facility facility = new Facility();
         facility.setName(request.name());
         facility.setType(request.type());
-        facility.setCreatedAt(LocalDateTime.now());
 
         Facility saved = facilityRepository.save(facility);
         return toResponse(saved);

@@ -32,6 +32,7 @@ public class ApiExceptionHandler {
 
         return ResponseEntity.badRequest().body(Map.of(
                 "error", "VALIDATION_ERROR",
+                "meesage", ex.getMessage(),
                 "fields", errors
         ));
     }
@@ -45,4 +46,14 @@ public class ApiExceptionHandler {
 
                 ));
     }
+
+    @ExceptionHandler(BadRequestException.class)
+    public ResponseEntity<?> handleBadRequest(BadRequestException ex) {
+        return ResponseEntity.badRequest()
+                .body(Map.of(
+                    "error", "BAD_REQUEST",
+                    "message", ex.getMessage()
+        ));
+    }
+
 }

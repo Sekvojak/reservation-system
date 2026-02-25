@@ -1,5 +1,6 @@
 package com.dominik.reservation.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -24,4 +25,15 @@ public class User {
 
     @Column(nullable = false)
     private LocalDateTime createdAt;
+
+    @JsonIgnore
+    @Column(nullable = false)
+    private String passwordHash;
+
+    @PrePersist
+    void onCreate() {
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
+    }
 }
